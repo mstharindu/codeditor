@@ -1,11 +1,15 @@
 import * as esbuild from 'esbuild-wasm';
+import localforage from 'localforage';
+
+const packageCache = localforage.createInstance({
+  name: 'packageCache',
+});
 
 export const pathPlugin = (input: string) => {
   return {
     name: 'path-plugin',
     setup(build: esbuild.PluginBuild) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      build.onResolve({ filter: /.*/ }, async (args: any) => {
+      build.onResolve({ filter: /.*/ }, async (args: esbuild.OnResolveArgs) => {
         console.log('onResole', args);
 
         if (args.path === 'index.js') {
@@ -17,7 +21,6 @@ export const pathPlugin = (input: string) => {
             args.path,
             `https://unpkg.com${args.resolveDir}/`
           );
-          console.log('RESOLVE DIR::::', urlObj.href);
 
           return {
             path: urlObj.href,
@@ -31,8 +34,7 @@ export const pathPlugin = (input: string) => {
         };
       });
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      build.onLoad({ filter: /.*/ }, async (args: any) => {
+      build.onLoad({ filter: /.*/ }, async (args: esbuild.OnLoadArgs) => {
         console.log('onLoad', args);
 
         if (args.path === 'index.js') {
@@ -40,6 +42,14 @@ export const pathPlugin = (input: string) => {
             loader: 'jsx',
             contents: input,
           };
+        }
+
+        const packageContent = await packageCache.getItem<esbuild.OnLoadResult>(
+          args.path
+        );
+
+        if (packageContent) {
+          return packageContent;
         }
 
         const response = await fetch(args.path);
@@ -50,12 +60,16 @@ export const pathPlugin = (input: string) => {
 
         const text = await response.text();
 
-        //const json = await response.json();
-        return {
+        const packagePayload: esbuild.OnLoadResult = {
           loader: 'jsx',
           contents: text,
           resolveDir: `${new URL('./', response.url).pathname}`,
         };
+
+        await packageCache.setItem(args.path, packagePayload);
+
+        //const json = await response.json();
+        return packagePayload;
       });
     },
   };
