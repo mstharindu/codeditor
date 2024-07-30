@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import * as esbuild from 'esbuild-wasm';
 import './App.css';
-import { pathPlugin } from './plugins/pathPlugin';
+import { pathPlugin } from './plugins/path-plugin';
+import { loadPackagePlugin } from './plugins/load-package-plugin';
 
 let initialized = false;
 
@@ -29,16 +30,11 @@ function App() {
 
   const onClickSubmit = async () => {
     try {
-      // const transformed = await esbuild.transform(input, {
-      //   loader: 'jsx',
-      //   target: 'es2015',
-      // });
-
       const result = await esbuild.build({
         entryPoints: ['index.js'],
         bundle: true,
         write: false,
-        plugins: [pathPlugin(input)],
+        plugins: [pathPlugin(), loadPackagePlugin(input)],
         define: {
           'process.env.NODE_ENV': '"production"',
           global: 'window',

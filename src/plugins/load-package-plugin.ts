@@ -1,39 +1,14 @@
-import * as esbuild from 'esbuild-wasm';
 import localforage from 'localforage';
+import * as esbuild from 'esbuild-wasm';
 
 const packageCache = localforage.createInstance({
   name: 'packageCache',
 });
 
-export const pathPlugin = (input: string) => {
+export const loadPackagePlugin = (input: string) => {
   return {
-    name: 'path-plugin',
+    name: 'load-package-plugin',
     setup(build: esbuild.PluginBuild) {
-      build.onResolve({ filter: /.*/ }, async (args: esbuild.OnResolveArgs) => {
-        console.log('onResole', args);
-
-        if (args.path === 'index.js') {
-          return { path: args.path, namespace: 'a' };
-        }
-
-        if (args.path.includes('./') || args.path.includes('../')) {
-          const urlObj = new URL(
-            args.path,
-            `https://unpkg.com${args.resolveDir}/`
-          );
-
-          return {
-            path: urlObj.href,
-            namespace: 'a',
-          };
-        }
-
-        return {
-          path: `https://unpkg.com/${args.path}`,
-          namespace: 'a',
-        };
-      });
-
       build.onLoad({ filter: /.*/ }, async (args: esbuild.OnLoadArgs) => {
         console.log('onLoad', args);
 
