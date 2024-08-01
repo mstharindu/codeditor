@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as esbuild from 'esbuild-wasm';
 import './App.css';
 import { pathPlugin } from './plugins/path-plugin';
@@ -6,9 +6,25 @@ import { loadPackagePlugin } from './plugins/load-package-plugin';
 
 let initialized = false;
 
+const iframeHTML = `<html>
+	<body>
+		<div id="root"></div>
+		<script>
+			window.addEventListener('message', (event) => {
+        try{
+          eval(event.data)
+        }catch(e){
+          document.body.innerHTML = '<pre style="color: red">'+e+'</pre>'
+          console.error(e)
+        }			
+			})
+		</script>
+	</body>
+</html>`;
+
 function App() {
   const [input, setInput] = useState('');
-  const [code, setCode] = useState('');
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
     const initialize = async () => {
@@ -30,6 +46,10 @@ function App() {
 
   const onClickSubmit = async () => {
     try {
+      if (iframeRef?.current) {
+        iframeRef.current.srcdoc = iframeHTML;
+      }
+
       const result = await esbuild.build({
         entryPoints: ['index.js'],
         bundle: true,
@@ -41,7 +61,13 @@ function App() {
         },
       });
 
-      setCode(result.outputFiles[0].text);
+      if (iframeRef?.current?.contentWindow) {
+        //iframeRef.current.srcdoc = iframeHTML;
+        iframeRef.current.contentWindow.postMessage(
+          result.outputFiles[0].text,
+          '*'
+        );
+      }
     } catch (e) {
       console.error(e);
     }
@@ -64,16 +90,17 @@ function App() {
       ></textarea>
       <button onClick={onClickSubmit}>Submit</button>
       <div>
-        <h2>Compiled code</h2>
-        <pre
+        <iframe
+          title="Preview"
+          ref={iframeRef}
           style={{
             backgroundColor: 'rgba(0,0,0,0.1)',
             height: '300px',
             width: '800px',
           }}
-        >
-          {code}
-        </pre>
+          sandbox="allow-scripts"
+          srcDoc={iframeHTML}
+        ></iframe>
       </div>
     </div>
   );
