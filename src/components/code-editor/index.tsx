@@ -5,9 +5,13 @@ import { editor } from 'monaco-editor';
 
 interface CodeEditorProps {
   setCode: React.Dispatch<React.SetStateAction<string>>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
 }
 
-export const CodeEditor: React.FC<CodeEditorProps> = ({ setCode }) => {
+export const CodeEditor: React.FC<CodeEditorProps> = ({
+  setCode,
+  setError,
+}) => {
   //const [input, setInput] = useState('');
 
   const editorRef = useRef<editor.ICodeEditor | null>(null);
@@ -23,9 +27,20 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({ setCode }) => {
   };
 
   const onClickSubmit = async () => {
-    const input = getValue();
-    const code = await build(input);
-    setCode(code);
+    setCode('');
+    setError('');
+
+    try {
+      const input = getValue();
+      const code = await build(input);
+      setCode(code);
+    } catch (e: unknown) {
+      if (typeof e === 'string') {
+        setError(e);
+      } else if (e instanceof Error) {
+        setError(e.message);
+      }
+    }
   };
 
   return (

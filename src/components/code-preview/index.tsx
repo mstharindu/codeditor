@@ -4,12 +4,30 @@ const iframeHTML = `<html>
 	<body>
 		<div id="root"></div>
 		<script>
-			window.addEventListener('message', (event) => {
-        try{
-          eval(event.data)
-        }catch(e){
+
+      const handleError = (e) => {
           document.body.innerHTML = '<pre style="color: red">'+e+'</pre>'
           console.error(e)
+      }
+
+      window.addEventListener('error', (event) => {
+        event.preventDefault();
+        handleError(event.error)
+      })
+
+			window.addEventListener('message', (event) => {
+
+        const {code, error} = event.data
+
+        if(error !== ''){
+          handleError(error)
+          return
+        }
+
+        try{
+          eval(code)
+        }catch(e){
+          handleError(e)
         }			
 			})
 		</script>
@@ -18,9 +36,10 @@ const iframeHTML = `<html>
 
 interface CodePreviewProps {
   code: string;
+  error: string;
 }
 
-export const CodePreview: React.FC<CodePreviewProps> = ({ code }) => {
+export const CodePreview: React.FC<CodePreviewProps> = ({ code, error }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   useEffect(() => {
@@ -29,7 +48,7 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ code }) => {
     const updatePreview = () => {
       try {
         if (iframe?.contentWindow) {
-          iframe.contentWindow.postMessage(code, '*');
+          iframe.contentWindow.postMessage({ code, error }, '*');
         }
       } catch (e) {
         console.error(e);
@@ -46,14 +65,13 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ code }) => {
         iframe.removeEventListener('load', updatePreview);
       }
     };
-  }, [code]);
+  }, [code, error]);
 
   return (
     <iframe
       title="Preview"
       ref={iframeRef}
       style={{
-        backgroundColor: 'rgba(0,0,0,0.1)',
         height: '100vh',
         width: '50%',
       }}
