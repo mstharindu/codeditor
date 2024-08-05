@@ -23,7 +23,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({ darkMode, setDarkMode }) => {
     <div className="h-12 w-full shadow-xl border-b-2 dark:border-stone-900 bg-stone-100 dark:bg-stone-900 text-bg-stone-900 dark:text-stone-100 flex items-center justify-end px-2">
       <button
         onClick={handleToggle}
-        className="p-2 rounded-full border-2 border-stone-900 dark:border-stone-100"
+        className="p-2 border-2 border-stone-900 dark:border-stone-100"
       >
         {darkMode ? <FaSun /> : <FaMoon />}
       </button>
