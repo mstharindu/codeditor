@@ -2,15 +2,18 @@ import React, { useRef } from 'react';
 import { build } from '../../bundler';
 import { Editor } from '@monaco-editor/react';
 import { editor } from 'monaco-editor';
+import { FaPlay } from 'react-icons/fa';
 
 interface CodeEditorProps {
   setCode: React.Dispatch<React.SetStateAction<string>>;
   setError: React.Dispatch<React.SetStateAction<string>>;
+  darkMode: boolean;
 }
 
 export const CodeEditor: React.FC<CodeEditorProps> = ({
   setCode,
   setError,
+  darkMode,
 }) => {
   //const [input, setInput] = useState('');
 
@@ -44,26 +47,22 @@ export const CodeEditor: React.FC<CodeEditorProps> = ({
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
-        width: '50%',
-      }}
-    >
+    <div className="flex flex-col relative w-1/2 h-full">
       <Editor
-        height="100vh"
+        height="100%"
         defaultLanguage="javascript"
         defaultValue="//Write your code here"
         onMount={handleEditorDidMount}
+        theme={darkMode ? 'vs-dark' : 'light'}
       />
-      <button
-        onClick={onClickSubmit}
-        style={{ position: 'absolute', right: 0, bottom: '0.5rem' }}
-      >
-        Submit
-      </button>
+      <div className="absolute right-0 -top-[2.8rem]">
+        <button
+          onClick={onClickSubmit}
+          className="bg-green-600 p-3 rounded-full flex items-center justify-center"
+        >
+          <FaPlay />
+        </button>
+      </div>
     </div>
   );
 };

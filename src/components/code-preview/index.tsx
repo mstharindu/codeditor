@@ -71,10 +71,7 @@ export const CodePreview: React.FC<CodePreviewProps> = ({ code, error }) => {
     <iframe
       title="Preview"
       ref={iframeRef}
-      style={{
-        height: '100vh',
-        width: '50%',
-      }}
+      className="h-full w-1/2 bg-stone-50"
       sandbox="allow-scripts"
       srcDoc={iframeHTML}
     ></iframe>
