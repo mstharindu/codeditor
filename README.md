@@ -1,5 +1,7 @@
 # Simple Code Editor
 
+![Simple Code Editor](https://github.com/mstharindu/codeditor/blob/master/public/screenshot.png)
+
 A simple code editor built with React, esbuild and Monaco editor. This application allows users to write JavaScript and React code in a single file, prettify the code, and run it to see the result on the right-hand side.
 
 ## Features
